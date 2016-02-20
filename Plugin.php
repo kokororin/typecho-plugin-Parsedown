@@ -37,6 +37,9 @@ class Parsedown_Plugin implements Typecho_Plugin_Interface
     public static function markdown($text)
     {
         require_once dirname(__FILE__) . '/Parsedown.php';
-        return Parsedown::instance()->text($text);
+        return Parsedown::instance()
+            ->setMarkupEscaped(true)
+            ->setBreaksEnabled(true)
+            ->text($text);
     }
 }
