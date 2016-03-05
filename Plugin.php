@@ -38,7 +38,6 @@ class Parsedown_Plugin implements Typecho_Plugin_Interface
     {
         require_once dirname(__FILE__) . '/Parsedown.php';
         return Parsedown::instance()
-            ->setMarkupEscaped(true)
             ->setBreaksEnabled(true)
             ->text($text);
     }
