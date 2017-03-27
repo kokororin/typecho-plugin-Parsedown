@@ -967,11 +967,12 @@ class Parsedown
         '`' => array('Code'),
         '~' => array('Strikethrough'),
         '\\' => array('EscapeSequence'),
+		'$' => array('Formula'),                     # add $ by xw_y_am @ 2017.03.26 
     );
 
     # ~
 
-    protected $inlineMarkerList = '!"*_&[:<>`~\\';
+    protected $inlineMarkerList = '$!"*_&[:<>`~\\';  # add $ by xw_y_am @ 2017.03.26
 
     #
     # ~
@@ -1012,6 +1013,18 @@ class Parsedown
                 if ( ! isset($Inline['position']))
                 {
                     $Inline['position'] = $markerPosition;
+                }
+
+                # special process for formula
+                # add by xw_y_am @ 2017.03.26
+
+                if (isset($Inline['formula']))
+                {
+                    $markup .= substr($text, 0, $Inline['position']);
+                    $markup .= $Inline['formula'];
+                    $text = substr($text, $Inline['position'] + $Inline['extent']);
+
+                    continue 2;
                 }
 
                 # the text that comes before the inline
@@ -1356,6 +1369,47 @@ class Parsedown
                 ),
             );
         }
+    }
+
+    #
+    # for fomula parsing
+    # added by xw_y_am @ 2017.03.26
+    #
+
+    protected function inlineFormula($Excerpt)
+    {
+        $excerpt = $Excerpt[ 'text' ];
+        preg_match( '/\$+/', $excerpt, $match );
+        if ( ! count( $match ) )
+        {
+            return array( 'formula' => "",
+                          'extent' => 0 );
+        }
+
+        $formula = $match[ 0 ];
+        $length = strlen( $formula );
+
+        switch ( $length ) {
+            case 1: $pattern = '/\$(\\\\\$|[^\$])+\$/';
+            case 2: {
+                if ( ! isset( $pattern ) ) {
+                    $pattern = '/\$\$(\\\\\$|\n|[^$]|[$][^$]+[$])+\$\$/'; 
+                }
+
+                preg_match( $pattern, $excerpt, $match );
+
+                if ( count( $match ) )
+                {
+                    $formula = $match[ 0 ];
+                    $length = strlen( $formula );
+                }
+
+                break;
+            }
+        }
+
+        return array( 'formula' => $formula,
+                      'extent' => $length );
     }
 
     # ~
